@@ -3,6 +3,7 @@
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import librosa
 import numpy as np
@@ -67,16 +68,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("video", help="video file filepath")
     parser.add_argument("audio", help="audio file filepath")
+    parser.add_argument("--check", help="audio file filepath", action="store_true")
     args = parser.parse_args()
 
     dest_dir = os.path.join(os.path.dirname(args.video), "cut")
-    os.makedirs(dest_dir, exist_ok=True)
-
     streams, video, audio = get_stream_info(args.video)
     
-    
-    assert video["codec_name"] == "h264", "only support h264 for video codes"
-    assert audio["codec_name"] == "aac", "only support aac for audio codes"
+    if not args.check:
+        os.makedirs(dest_dir, exist_ok=True)
+        assert video["codec_name"] == "h264", "only support h264 for video codes"
+        assert audio["codec_name"] == "aac", "only support aac for audio codes"
 
     # 音声をロード
     audio1, sr = load_audio(args.video)
@@ -97,6 +98,9 @@ if __name__ == "__main__":
     t = format_time(raw_len, sr)
     print(ss)
     print(t)
+
+    if args.check:
+        sys.exit(0)
 
     seconds = abs(lag) / sr
     m, s = divmod(seconds, 60)
